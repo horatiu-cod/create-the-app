@@ -17,7 +17,7 @@ This system processes 3 required PDF files using a sequential pipeline of 5 spec
 
 1. **Clone the repository** (if applicable) and navigate to the project directory:
    ```bash
-   cd c:\AntiGravSpace\create-the-app
+   git clone https://github.com/horatiu-cod/create-the-app.git
    ```
 
 2. **Install the required dependencies**:
