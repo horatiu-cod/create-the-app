@@ -1,5 +1,6 @@
 import os
 import time
+import re
 from typing import Optional, List
 from openai import OpenAI, RateLimitError
 from tenacity import retry, wait_exponential, retry_if_exception_type, stop_after_attempt
@@ -55,9 +56,13 @@ def call_llm(prompt: str, system_instruction: str = "You are a helpful assistant
         logger.error(f"LLM API call failed: {e}")
         return FALLBACK_MESSAGE
 
-def smart_chunk_text(text: str, max_chars_per_chunk: int = 4000) -> List[str]:
+def smart_chunk_text(md_content: str, max_chars_per_chunk: int = 4000) -> List[str]:
     """Splits text on paragraph boundaries rather than raw character counts for better context."""
-    paragraphs = text.split('\n\n')
+    paragraphs = md_content.split('\n\n') 
+    """
+    Splits a markdown string into sections based on headers.
+    paragraphs = split_markdown_by_sections(md_content)
+    """
     chunks = []
     current_chunk = ""
 
@@ -73,3 +78,35 @@ def smart_chunk_text(text: str, max_chars_per_chunk: int = 4000) -> List[str]:
         chunks.append(current_chunk.strip())
         
     return chunks
+
+def split_markdown_by_sections(md_content):
+    """
+    Splits a markdown string into sections based on headers.
+    Includes any text before the first header as a 'preamble' section.
+    """
+    # Pattern matches lines starting with #, ##, etc. at the beginning of a line
+    # re.MULTILINE allows ^ to match the start of every line
+    header_pattern = re.compile(r'^(#+ .*)$', re.MULTILINE)
+    
+    # Find all matches for headers
+    matches = list(header_pattern.finditer(md_content))
+    
+    sections = []
+    
+    # Handle text before the first header (preamble)
+    if matches and matches[0].start() > 0:
+        preamble = md_content[:matches[0].start()].strip()
+        if preamble:
+            sections.append(preamble)
+            
+    # Iterate through matches to slice the text
+    for i in range(len(matches)):
+        start_pos = matches[i].start()
+        # The section ends where the next header starts, or at the end of the file
+        end_pos = matches[i+1].start() if i + 1 < len(matches) else len(md_content)
+        
+        section_content = md_content[start_pos:end_pos].strip()
+        if section_content:
+            sections.append(section_content)
+            
+    return sections
