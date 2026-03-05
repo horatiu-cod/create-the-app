@@ -1,11 +1,18 @@
 from pathlib import Path
 import logging
+import sys
 
+"""
 try:
     from docling.document_converter import DocumentConverter
     HAS_DOCLING = True
 except ImportError:
     HAS_DOCLING = False
+"""
+if 'docling' in sys.modules:
+    HAS_DOCLING = True
+else:
+    HAS_DOCLING = False 
 
 logger = logging.getLogger(__name__)
 
@@ -22,8 +29,9 @@ def convert_pdf_to_md(pdf_path: str, output_dir: str) -> str:
     
     if HAS_DOCLING:
         logger.info(f"Using docling to convert {pdf_path}")
-        converter = DocumentConverter()
-        md_content = converter.convert_pdf_to_md(pdf_path)
+        #converter = DocumentConverter()
+        #md_content = converter.convert_pdf_to_md(pdf_path)
+        md_content = run_ollama_document_converter(pdf_path, model_name="ibm/granite-docling:258m")
         # md_content = doc.export_to_markdown()
     else:
         logger.warning(f"Docling not available. Falling back to simple text extraction for {pdf_path}")
