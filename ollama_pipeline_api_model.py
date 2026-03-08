@@ -177,7 +177,7 @@ def run_ollama_document_converter(
         prompt="Convert this PDF document to markdown format...",  # Added
         params={
             "model": model_name,
-            "temperature": 0.0,
+            "temperature": 0.3,
             "max_tokens": 4096,
             "options": {"num_ctx": 8192},
         },
