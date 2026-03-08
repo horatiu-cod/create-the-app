@@ -36,6 +36,7 @@ from docling.datamodel.pipeline_options import (
 from docling.datamodel.vlm_engine_options import (
     ApiVlmEngineOptions,
     VlmEngineType,
+    ApiVlmOptions
 )
 from docling.document_converter import DocumentConverter, PdfFormatOption
 from docling.pipeline.vlm_pipeline import VlmPipeline
