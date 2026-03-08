@@ -26,5 +26,5 @@ class FormatterAgent:
                 results.append(md_path)
                 logger.info(f"Successfully converted to {md_path}")
             except Exception as e:
-                logger.error(f"Failed to convert {file}: {e}")
+                logger.error(f"Failed to convert this file: {file}: {e}")
         return results

@@ -1,9 +1,9 @@
-openai>=1.0
-streamlit>=1.30.0
-tenacity>=8.2.0
-pytest>=8.0.0
+#openai>=1.0
+#streamlit>=1.30.0
+#tenacity>=8.2.0
+#pytest>=8.0.0
 # The following is a fallback for docling if docling itself isn't installed. We'll specify PyMuPDF and pypdf2, or docling
-docling>=1.0.0
-pytest-mock>=3.12.0
-# md2pdf or pdfkit tools
-pdfkit>=1.0.0
+#docling>=1.0.0
+#pytest-mock>=3.12.0
+# pdf generator
+markdown-pdf>=1.3

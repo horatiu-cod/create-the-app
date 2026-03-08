@@ -1,6 +1,7 @@
 import streamlit as st
 import os
 import sys
+import logging
 
 # Add project root to path so we can import agents
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
@@ -9,7 +10,10 @@ from agents.formatter.formatter_agent import FormatterAgent
 from agents.differ.differ_agent import DifferAgent
 from agents.summarizer.summarizer_agent import SummarizerAgent
 from agents.analyser.analyser_agent import AnalyserAgent
-from agents.reporter.reporter_agent import ReportingAgent
+from agents.reporter.reporter_agent import ReporterAgent
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 INPUT_DIR = "data/input"
 OUTPUT_DIR = "output"
@@ -70,7 +74,7 @@ if st.button("Run Multi-Agent Pipeline"):
 
             # 5. Reporter Agent
             status_text.text("Agent 5: Reporter Agent is generating the final PDF...")
-            reporter = ReportingAgent(output_dir=OUTPUT_DIR)
+            reporter = ReporterAgent(output_dir=OUTPUT_DIR)
             final_report_path = reporter.process("raport.md", "raport_final.pdf")
             progress_bar.progress(100)
             

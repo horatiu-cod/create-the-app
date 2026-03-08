@@ -39,15 +39,20 @@ from docling.datamodel.vlm_engine_options import (
 )
 from docling.document_converter import DocumentConverter, PdfFormatOption
 from docling.pipeline.vlm_pipeline import VlmPipeline
+from docling.datamodel.pipeline_options_vlm_model import ApiVlmOptions, ResponseFormat
+from typer import prompt
 
 # Configure basic logging
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+)
 logger = logging.getLogger(__name__)
 
 # Fallback string
 FALLBACK_MESSAGE = "Agent execution failed due to API error or empty input. Downstream tasks might be impacted."
 
-def check_and_pull_ollama_model(model_name: str, base_url: str ) -> bool:
+
+def check_and_pull_ollama_model(model_name: str, base_url: str) -> bool:
     """Check if model exists in Ollama and attempt to pull if not.
 
     Args:
@@ -58,7 +63,9 @@ def check_and_pull_ollama_model(model_name: str, base_url: str ) -> bool:
     """
     try:
         # Check if model exists
-        response = requests.get(f"{base_url}/tags", timeout=2)
+        logger.info(f"Checking if model '{model_name}' exists in Ollama...")
+        logger.info(f"Base URL: {base_url}")
+        response = requests.get(f"{base_url}/api/tags", timeout=2)
         if response.status_code == 200:
             models = response.json().get("models", [])
             model_names = [m.get("name") for m in models]
@@ -73,14 +80,15 @@ def check_and_pull_ollama_model(model_name: str, base_url: str ) -> bool:
 
             # Ollama pull API endpoint
             pull_response = requests.post(
-                f"{base_url}/pull",
+                f"{base_url}/api/pull",
                 json={"name": model_name},
                 stream=True,
                 timeout=300,
             )
-
+            logger.info(f"Pull response status code: {pull_response.status_code}")
             if pull_response.status_code == 200:
                 # Stream the response to show progress
+                logger.info("Pulling model...")
                 for line in pull_response.iter_lines():
                     if line:
                         import json
@@ -89,14 +97,17 @@ def check_and_pull_ollama_model(model_name: str, base_url: str ) -> bool:
                             data = json.loads(line)
                             status = data.get("status", "")
                             if status:
-                                logger.info(f"  {status}", end="\r")
+                                print(f"{status}", end="\r")
                         except json.JSONDecodeError:
+                            logger.warning(f"Non-JSON line in pull response: {line}")
                             pass
-                logger.info()  # New line after progress
+                print()  # New line after progress
                 logger.info(f"✓ Successfully pulled model '{model_name}'")
                 return True
             else:
-                logger.error(f"✗ Failed to pull model: HTTP {pull_response.status_code}")
+                logger.error(
+                    f"✗ Failed to pull model: HTTP {pull_response.status_code}"
+                )
                 return False
         return False
     except requests.exceptions.Timeout:
@@ -108,16 +119,22 @@ def check_and_pull_ollama_model(model_name: str, base_url: str ) -> bool:
         return False
 
 
-def run_ollama_document_converter(input_doc_path: Path, model_name: str = "ibm/granite-docling:258m") -> str:
-    base_url = os.getenv("OPENAI_BASE_URL", "https://api.openai.com/v1")
-    REMOTE_OLLAMA_URL = f"{base_url}/v1/chat/completions"   
+def run_ollama_document_converter(
+    input_doc_path: Path, model_name: str = "ibm/granite-docling"
+) -> tuple[str, bool]:
+    # Load environment variables
+    # from dotenv import load_dotenv
+
+    load_dotenv()
+    base_url = os.environ.get("OPENAI_BASE_URL", "")
+    REMOTE_OLLAMA_URL = f"{base_url}/v1/chat/completions"
     """Example 2: Using Granite-Docling preset with Ollama.
 
     Returns:
         True if example ran successfully, False if skipped
     """
     print("\n" + "=" * 70)
-    print("Example: Granite-Docling with Ollama (pre-configured API type)")
+    print(f"Example {base_url}: Granite-Docling with Ollama (pre-configured API type)")
     print("=" * 70)
     print("\nPrerequisites:")
     print("- Install Ollama: https://ollama.ai")
@@ -125,48 +142,48 @@ def run_ollama_document_converter(input_doc_path: Path, model_name: str = "ibm/g
     print()
 
     # Check if Ollama is running
+    logger.info(f"Checking if Ollama server is running at {base_url}...")
+
     try:
-        response = requests.get(f"{base_url}/tags", timeout=2)
+        response = requests.get(f"{base_url}/api/tags", timeout=2)
         if response.status_code != 200:
             logger.warning("WARNING: Ollama server not responding correctly")
-            logger.warning("Skipping Ollama example.\n")
-            return FALLBACK_MESSAGE
+            return FALLBACK_MESSAGE, False
     except requests.exceptions.RequestException:
-        logger.warning("WARNING: Ollama server not running at http://localhost:11434")
-        logger.warning("Skipping Ollama example.\n")
-        return FALLBACK_MESSAGE
+        logger.warning(f"WARNING: Ollama server not running at {base_url}")
+        return FALLBACK_MESSAGE, False
 
     # Check and pull the model
-    #model_name = "ibm/granite-docling:258m"
+    # model_name = "ibm/granite-docling:258m"
+    logger.info(f"Checking if model '{model_name}' exists in Ollama...")
     if not check_and_pull_ollama_model(model_name, base_url):
-        logger.warning("Skipping Ollama example.\n")
-        return FALLBACK_MESSAGE
+        return FALLBACK_MESSAGE, False
 
     # Use granite_docling preset with Ollama API runtime
     """
     vlm_options = VlmConvertOptions.from_preset(
-        "granite_docling",
+    "granite_docling",
         engine_options=ApiVlmEngineOptions(
             runtime_type=VlmEngineType.API_OLLAMA,
-            # url is pre-configured for Ollama (http://localhost:11434/v1/chat/completions)
-            # model name is pre-configured from the preset
-            timeout=90,
+            url=REMOTE_OLLAMA_URL,
+            model_name=model_name,
+            timeout=300,
         ),
     )
     """
     vlm_options = ApiVlmOptions(
         url=REMOTE_OLLAMA_URL,
+        prompt="Convert this PDF document to markdown format...",  # Added
         params={
             "model": model_name,
             "temperature": 0.0,
             "max_tokens": 4096,
-            # Ollama-specific: to increase context, use 'options' nesting
-            "options": {"num_ctx": 8192} 
+            "options": {"num_ctx": 8192},
         },
-        #response_format=ResponseFormat.MARKDOWN,
-        timeout=300 # Remote calls can take time depending on network/GPU
+        response_format=ResponseFormat.MARKDOWN,
+        timeout=300,  # Remote calls can take time depending on network/GPU
     )
-
+    
     pipeline_options = VlmPipelineOptions(
         vlm_options=vlm_options,
         enable_remote_services=True,
@@ -181,10 +198,59 @@ def run_ollama_document_converter(input_doc_path: Path, model_name: str = "ibm/g
         }
     )
 
-    result = doc_converter.convert(input_doc_path)
-    return str(result.document.export_to_markdown())
+    doc = doc_converter.convert(input_doc_path).document
+    #return result, True
+    OUTPUT_DIR = Path(__file__).parent / "output/test.md" 
+    doc.save_as_markdown(OUTPUT_DIR)
+    """
+    md = result.document.export_to_markdown()
+    with open(OUTPUT_DIR , 'w', encoding="utf-8") as f:
+            f.write(md)
+    """
+    return OUTPUT_DIR, True
+    
+def main():
+
+    INPUT_DIR = Path(__file__).parent / "data/input"
+    #OUTPUT_DIR = Path(__file__).parent / "output"    
+    #data_folder = Path(__file__).parent / "../../tests/data"
+    input_doc_path = INPUT_DIR /"memoriu.pdf"
+    if not input_doc_path.exists():
+        logger.error(f"Input document not found at {input_doc_path}")
+        return
+
+    # Track which examples ran
+    t, s = run_ollama_document_converter(input_doc_path)
+    
+    results = {
+        "Ollama": s,
+    }
+
+    # Print summary
+    print("\n" + "=" * 70)
+    print("SUMMARY")
+    print("=" * 70)
+
+    ran = [name for name, success in results.items() if success]
+    skipped = [name for name, success in results.items() if not success]
+
+    if ran:
+        print(f"\n✓ Examples that ran successfully ({len(ran)}):")
+        for name in ran:
+            print(f"  - {name}")
+        print(f"\nOutput from Ollama example:\n{t}")
+        
+    if skipped:
+        print(f"\n⊘ Examples that were skipped ({len(skipped)}):")
+        for name in skipped:
+            reason = "Server not running"
+            print(f"  - {name}: {reason}")
+
+    print()
 
 
+if __name__ == "__main__":
+    main()
 
 # %% [markdown]
 # ## Key Concepts

@@ -4,7 +4,7 @@ from .tools.reporter_tool import generate_pdf_report
 
 logger = logging.getLogger(__name__)
 
-class ReportingAgent:
+class ReporterAgent:
     def __init__(self, output_dir: str = "output"):
         self.output_dir = output_dir
 
