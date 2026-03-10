@@ -2,6 +2,10 @@ import difflib
 import logging
 from pathlib import Path
 
+# Configure basic logging
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+)
 logger = logging.getLogger(__name__)
 
 def generate_diff(md1_path: str, md2_path: str, output_path: str):
@@ -12,11 +16,11 @@ def generate_diff(md1_path: str, md2_path: str, output_path: str):
         with open(md1_path, 'r', encoding='utf-8') as f1, open(md2_path, 'r', encoding='utf-8') as f2:
             lines1 = f1.readlines()
             lines2 = f2.readlines()
-
+        logger.info("started")
         diff = difflib.unified_diff(
             lines1, lines2,
-            fromfile=md1_path,
-            tofile=md2_path,
+            fromfile=str(md1_path),
+            tofile=str(md2_path),
             lineterm=''
         )
 
@@ -38,18 +42,22 @@ def generate_diff(md1_path: str, md2_path: str, output_path: str):
 def main():
 
     #INPUT_DIR = Path(__file__).parent / "data/input"
-    OUTPUT_DIR = Path(__file__).parent / "output"    
+    OUTPUT_DIR = Path(__file__).parents[3] / "output"
     md1_path = OUTPUT_DIR /"formular_initial.md"
-    md2_path = OUTPUT_DIR /"formular_initial.md"
+    md2_path = OUTPUT_DIR /"test.md"
     output_path = OUTPUT_DIR /"differs.md"
 
-    if not md1_path.exists():
+    # Print summary
+    print("\n" + "=" * 70)
+    print("SUMMARY")
+    print("=" * 70)
+    if not md1_path.exists() and not md2_path.exists() and not output_path.exists():
         logger.error(f"Input document not found at {md1_path}")
         return
-
+    logger.info(f"Comparing {md1_path} and {md2_path}, output will be saved to {output_path}")
     output_md = generate_diff(md1_path, md2_path, output_path)
 
     print(output_md)
 
-    if __name__ == "__main__":
-        main()
+if __name__ == "__main__":
+     main()
