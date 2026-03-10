@@ -36,7 +36,6 @@ from docling.datamodel.pipeline_options import (
 from docling.datamodel.vlm_engine_options import (
     ApiVlmEngineOptions,
     VlmEngineType,
-    ApiVlmOptions
 )
 from docling.document_converter import DocumentConverter, PdfFormatOption
 from docling.pipeline.vlm_pipeline import VlmPipeline
@@ -121,7 +120,7 @@ def check_and_pull_ollama_model(model_name: str, base_url: str) -> bool:
 
 
 def run_ollama_document_converter(
-    input_doc_path: Path, model_name: str = "ibm/granite-docling"
+    input_doc_path: Path, model_name: str = "deepseek-ocr"
 ) -> tuple[str, bool]:
     # Load environment variables
     # from dotenv import load_dotenv
@@ -163,7 +162,7 @@ def run_ollama_document_converter(
     # Use granite_docling preset with Ollama API runtime
     """
     vlm_options = VlmConvertOptions.from_preset(
-    "granite_docling",
+    "deepseek_ocr",
         engine_options=ApiVlmEngineOptions(
             runtime_type=VlmEngineType.API_OLLAMA,
             url=REMOTE_OLLAMA_URL,
@@ -201,7 +200,7 @@ def run_ollama_document_converter(
 
     doc = doc_converter.convert(input_doc_path).document
     #return result, True
-    OUTPUT_DIR = Path(__file__).parent / "output/test.md" 
+    OUTPUT_DIR = Path(__file__).parent / "output/test2.md" 
     doc.save_as_markdown(OUTPUT_DIR)
     """
     md = result.document.export_to_markdown()
@@ -215,7 +214,7 @@ def main():
     INPUT_DIR = Path(__file__).parent / "data/input"
     #OUTPUT_DIR = Path(__file__).parent / "output"    
     #data_folder = Path(__file__).parent / "../../tests/data"
-    input_doc_path = INPUT_DIR /"memoriu.pdf"
+    input_doc_path = INPUT_DIR /"formular_initial.pdf"
     if not input_doc_path.exists():
         logger.error(f"Input document not found at {input_doc_path}")
         return

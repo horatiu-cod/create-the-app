@@ -1,5 +1,6 @@
 import difflib
 import logging
+from pathlib import Path
 
 logger = logging.getLogger(__name__)
 
@@ -33,3 +34,22 @@ def generate_diff(md1_path: str, md2_path: str, output_path: str):
         with open(output_path, 'w', encoding='utf-8') as out:
             out.write(f"Agent execution failed due to API error or empty input. Downstream tasks might be impacted.\nError: {e}")
         return output_path
+
+def main():
+
+    #INPUT_DIR = Path(__file__).parent / "data/input"
+    OUTPUT_DIR = Path(__file__).parent / "output"    
+    md1_path = OUTPUT_DIR /"formular_initial.md"
+    md2_path = OUTPUT_DIR /"formular_initial.md"
+    output_path = OUTPUT_DIR /"differs.md"
+
+    if not md1_path.exists():
+        logger.error(f"Input document not found at {md1_path}")
+        return
+
+    output_md = generate_diff(md1_path, md2_path, output_path)
+
+    print(output_md)
+
+    if __name__ == "__main__":
+        main()
