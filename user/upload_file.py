@@ -85,5 +85,15 @@ if st.button("Run Multi-Agent Pipeline"):
                 with open(final_report_path, "rb") as f:
                     st.download_button("Download Final Report", f, file_name=os.path.basename(final_report_path), type="primary")
 
+            # Display the comparison report if it exists
+            html_report_path = os.path.join(OUTPUT_DIR, "comparison_report.html")
+            if os.path.exists(html_report_path):
+                st.markdown("---")
+                st.subheader("📑 Visual Comparison Report")
+                with open(html_report_path, "r", encoding="utf-8") as f:
+                    html_data = f.read()
+                import streamlit.components.v1 as components
+                components.html(html_data, height=800, scrolling=True)
+
         except Exception as e:
             st.error(f"Pipeline failed: {str(e)}")

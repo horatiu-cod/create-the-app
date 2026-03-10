@@ -2,7 +2,7 @@ import difflib
 import sys
 import os
 
-def generate_comparison_report(file1_path, file2_path, output_html="comparison_report.html"):
+def generate_comparison_report(file1_path, file2_path, output_html="output/comparison_report.html"):
     """
     Compares two Markdown files (containing both text and tables) 
     and generates a side-by-side HTML report highlighting the differences.

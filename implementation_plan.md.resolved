@@ -1,0 +1,39 @@
+# Implementation Plan: multi-agent-pdf-digest
+
+## Goal Description
+Create a multi-agent system that processes user-uploaded PDFs (memoriu.pdf, formular_initial.pdf, formular_modificat.pdf), extracts and compares their content, analyzes the accuracy of modifications against the summary, and generates a final PDF report. The system includes 5 specific agents: Formatter, Differ, Summarizer, Analyser, and Reporter. A web interface will be provided for user interaction.
+
+## Proposed Changes
+
+### System Architecture & Setup
+- Initialize the directory structure as defined in [project.md](file:///c:/AntiGravSpace/create-the-app/project.md).
+- Create a `requirements.txt` with essential packages: `openai`, `docling` (or alternatives if unavailable), `streamlit` (for the web UI), `tenacity` (for exponential backoff), `pytest` (for tests).
+- Implement a `.env` template for OpenAI / vLLM API keys.
+
+### Core Utilities & API Handling
+- Create a shared `llm_client.py` utility function implementing exponential backoff (catching RateLimitError) and fallback mechanisms as requested to handle API failures gracefully.
+- Configure smart chunking (sentence/paragraph-based) for handling large text context.
+- Set Temperature = 0.3 for focused deterministic summarizations.
+
+### Agents & Tools Implementation
+- **Formatter Agent**: Uses `docling` (or a fallback like `pdfMiner`/`PyMuPDF` if docling implies heavy dependencies that are tricky on standard windows) to read the 3 PDFs and convert them to Markdown. 
+- **Differ Agent**: Uses Python's `difflib` to compare `formular_initial.md` and `formular_modificat.md`, outputting `differs.md`.
+- **Summarizer Agent**: Uses the robust LLM client block to read `memoriu.md` and generate a concise `summary.md`.
+- **Analyser Agent**: Uses the LLM client to cross-reference `summary.md` and `differs.md`, ensuring all requested changes in the summary are present in the diff, and generates `raport.md`.
+- **Reporter Agent**: Uses a markdown-to-pdf tool (like `md2pdf` or `weasyprint`) to convert `raport.md` to `raport.pdf`.
+
+### Web Interface
+- Create a `streamlit` app (`user/upload_file.py`) allowing the user to upload the required 3 PDFs, triggering the pipeline sequentially, and displaying the status of each agent and the final downloadable PDF report.
+
+### Testing
+- Implement unit tests in `tests/` using `pytest` to mock API responses and test tool logic (diffing, formatting, LLM prompts and fallback behavior).
+
+## User Review Required
+> [!IMPORTANT]
+> The project description mentions using `Docling` which connects remotely to Kaggle running vLLM or Ollama. I plan to build the system to connect to standard OpenAI endpoints (configurable via `base_url` in `.env` so it points to your Kaggle instance or standard OpenAI). I will use `streamlit` instead of a custom web framework to create the web app quickly and beautifully. Let me know if you approve this architecture!
+
+## Verification Plan
+### Automated Tests
+- Run `pytest tests/` to verify logic.
+### Manual Verification
+- Upload sample PDFs using `streamlit run user/upload_file.py` and verify that the pipeline runs to completion, producing a final PDF digest.
