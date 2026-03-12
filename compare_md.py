@@ -8,7 +8,7 @@ def generate_comparison_report(file1_path, file2_path, output_html="output/compa
     and generates a side-by-side HTML report highlighting the differences.
     """
     if not os.path.exists(file1_path) or not os.path.exists(file2_path):
-        print(f"Error: One or both files do not exist.")
+        print(f"Error: One or both files do not exist {file1_path} or {file2_path}.")
         print(f"File 1: {file1_path} (Exists: {os.path.exists(file1_path)})")
         print(f"File 2: {file2_path} (Exists: {os.path.exists(file2_path)})")
         return
