@@ -200,7 +200,11 @@ def run_ollama_document_converter(
 
     doc = doc_converter.convert(input_doc_path).document
     #return result, True
-    OUTPUT_DIR = Path(__file__).parent / "output/test2.md" 
+    #from pathlib import Path
+    #input_doc_path = "C:\\AntiGravSpace\\create-the-app\\data\\input\\memoriu.pdf"
+    file_name = Path(input_doc_path).stem
+    OUTPUT_DIR = Path(__file__).parent / f"output/{file_name}.md"
+    logger.info(OUTPUT_DIR)
     doc.save_as_markdown(OUTPUT_DIR)
     """
     md = result.document.export_to_markdown()
@@ -214,7 +218,10 @@ def main():
     INPUT_DIR = Path(__file__).parent / "data/input"
     #OUTPUT_DIR = Path(__file__).parent / "output"    
     #data_folder = Path(__file__).parent / "../../tests/data"
-    input_doc_path = INPUT_DIR /"formular_initial.pdf"
+    #input_doc_path = INPUT_DIR /"formular_initial.pdf"
+    input_doc_path = INPUT_DIR /"memoriu.pdf"
+    #input_doc_path = INPUT_DIR /"formular_modificat.pdf"
+    #input_doc_path = "C:\AntiGravSpace\create-the-app\data\input\memoriu..pdf"
     if not input_doc_path.exists():
         logger.error(f"Input document not found at {input_doc_path}")
         return
