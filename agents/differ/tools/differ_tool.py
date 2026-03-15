@@ -40,27 +40,28 @@ def generate_diff(md1_path: str, md2_path: str, output_path: str):
                 # Context lines (unchanged)
                 labeled_diff.append(line)
 
-        diff = difflib.ndiff(lines1, lines2)
+        differ = difflib.ndiff(lines1, lines2)
         last_origin_line = ""
 
-        for line in diff:
+        labeled_differ = []
+        for line in differ:
             code = line[:2]  # The prefix: '+ ', '- ', '? ', or '  '
             content = line[2:].strip()
             
             if code == '- ':
                 # Line removed from file 1
                 last_origin_line = content
-                labeled_diff.append(f"[{md1_path}] - {content}")
+                labeled_differ.append(f"[{md1_path}] - {content}")
                 
             elif code == '+ ':
                 # Line added to file 2
-                labeled_diff.append(f"[{md2_path}] + {content}")
+                labeled_differ.append(f"[{md2_path}] + {content}")
                 
             elif code == '? ':
                 # Character-level highlight line (points to changes in the line above)
                 # We attribute this highlight to the file that just had the change
                 prefix = f"[{md2_path}]" if '+' in line else f"[{md1_path}]"
-                labeled_diff.append(f"{prefix}   {content}")
+                labeled_differ.append(f"{prefix}   {content}")
 
         diff_text = '\n'.join(labeled_diff)
         #diff_text = '\n'.join(diff)
@@ -83,7 +84,7 @@ def main():
     #INPUT_DIR = Path(__file__).parent / "data/input"
     OUTPUT_DIR = Path(__file__).parents[3] / "output"
     md1_path = OUTPUT_DIR /"formular_initial.md"
-    md2_path = OUTPUT_DIR /"formular_initial_copy.md"
+    md2_path = OUTPUT_DIR /"formular_modificat.md"
     output_path = OUTPUT_DIR /"differs.md"
 
     # Print summary
