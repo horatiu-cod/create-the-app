@@ -1,6 +1,6 @@
 import os
 import logging
-from llm_client import call_llm, smart_chunk_text
+from llm_client import call_llm
 
 logger = logging.getLogger(__name__)
 
@@ -8,6 +8,7 @@ SYSTEM_PROMPT = """You are a meticulous technical auditor.
 You will be provided with:
 1. `summary.md`: The requested requirements.
 2. `differs.md`: The actual changes made in the files.
+The file are written in Romanian language [ro].
 
 Your task is to analyze if ALL requirements from the summary are fully and accurately implemented in the diffs, and vice-versa.
 Output a detailed discrepancy markdown report. Do not produce anything outside the markdown format.
