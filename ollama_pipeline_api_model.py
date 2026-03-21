@@ -118,7 +118,7 @@ def check_and_pull_ollama_model(model_name: str, base_url: str) -> bool:
         logger.error(f"✗ Error checking/pulling model: {e}")
         return False
 
-def run_ollama_document_converter_cloud(input_doc_path: Path, model_name: str = "qwen3.5:397b-cloud") -> tuple[str, bool]:
+def run_ollama_document_converter_cloud(input_doc_path: Path, model_name: str = "gemma3:27b-cloud") -> tuple[str, bool]:
     # Load environment variables
     # from dotenv import load_dotenv
 
@@ -127,7 +127,7 @@ def run_ollama_document_converter_cloud(input_doc_path: Path, model_name: str = 
     REMOTE_OLLAMA_URL = f"{base_url}/v1/chat/completions"
     vlm_options = ApiVlmOptions(
         url=REMOTE_OLLAMA_URL,
-        prompt="Convert this PDF document to markdown format....",  # Added
+        prompt="Convert this PDF document to markdown format. Do not generate any explanation. Do not add any extra text",  # Added
         params={
             "model": model_name,
             "temperature": 0.0,
@@ -138,8 +138,69 @@ def run_ollama_document_converter_cloud(input_doc_path: Path, model_name: str = 
             "Authorization": "Bearer " + os.environ.get("OPENAI_API_KEY", "")
         },  
         response_format=ResponseFormat.MARKDOWN,
-        timeout=300,  # Remote calls can take time depending on network/GPU
+        #timeout=300,  # Remote calls can take time depending on network/GPU
     )
+    
+    pipeline_options = VlmPipelineOptions(
+        vlm_options=vlm_options,
+        enable_remote_services=True,
+    )
+
+    doc_converter = DocumentConverter(
+        format_options={
+            InputFormat.PDF: PdfFormatOption(
+                pipeline_options=pipeline_options,
+                pipeline_cls=VlmPipeline,
+            )
+        }
+    )
+    file_name = Path(input_doc_path).stem
+    OUTPUT_DIR = Path(__file__).parent / f"output/{file_name}.md"
+    if not OUTPUT_DIR.parent.exists():
+        logger.info(f"Creating output directory: {OUTPUT_DIR.parent}")
+        OUTPUT_DIR.parent.mkdir(parents=True, exist_ok=True)
+    logger.info(OUTPUT_DIR)
+
+
+    doc = doc_converter.convert(input_doc_path).document
+
+    doc.save_as_markdown(OUTPUT_DIR)
+    """
+    md = result.document.export_to_markdown()
+    with open(OUTPUT_DIR , 'w', encoding="utf-8") as f:
+            f.write(md)
+    """
+    return OUTPUT_DIR, True 
+
+def run_ollama_document_converter_router(input_doc_path: Path, model_name: str = "google/gemma-3-27b-it:free") -> tuple[str, bool]:
+    # Load environment variables
+    # from dotenv import load_dotenv
+
+    load_dotenv()
+    base_url = os.environ.get("OPENROUTER_BASE_URL", "")
+    REMOTE_OLLAMA_URL = f"{base_url}/chat/completions"
+    print(base_url)
+    print(REMOTE_OLLAMA_URL)
+    try:
+        
+        vlm_options = ApiVlmOptions(
+            url=REMOTE_OLLAMA_URL,
+            prompt="Convert this PDF document to markdown format. Do not generate any explanation.",  # Added
+            params={
+                "model": model_name,
+                "temperature": 0.0,
+                "max_tokens": 8192,
+                "options": {"num_ctx": 65536},
+            },
+            headers={
+                "Authorization": "Bearer " + os.environ.get("OPENROUTER_API_KEY", "")
+            },  
+            response_format=ResponseFormat.MARKDOWN,
+            #timeout=300,  # Remote calls can take time depending on network/GPU
+        )
+    except Exception as e:
+        logger.error(f"Error creating VlmPipelineOptions: {e}")
+        return None, False
     
     pipeline_options = VlmPipelineOptions(
         vlm_options=vlm_options,
@@ -274,8 +335,8 @@ def main():
     INPUT_DIR = Path(__file__).parent / "data/input"
     #OUTPUT_DIR = Path(__file__).parent / "output"    
     #data_folder = Path(__file__).parent / "../../tests/data"
-    input_doc_path = INPUT_DIR /"formular_initial.pdf"
-    #input_doc_path = INPUT_DIR /"memoriu.pdf"
+    #input_doc_path = INPUT_DIR /"formular_initial.pdf"
+    input_doc_path = INPUT_DIR /"memoriu.pdf"
     #input_doc_path = INPUT_DIR /"formular_modificat.pdf"
     #input_doc_path = "C:\AntiGravSpace\create-the-app\data\input\memoriu..pdf"
     if not input_doc_path.exists():
@@ -283,6 +344,7 @@ def main():
         return
 
     # Track which examples ran
+    #t, s = run_ollama_document_converter_router(input_doc_path)
     t, s = run_ollama_document_converter_cloud(input_doc_path)
     
     results = {

@@ -8,7 +8,7 @@ SYSTEM_PROMPT = """You are a meticulous technical auditor.
 You will be provided with:
 1. `summary.md`: The requested requirements.
 2. `differs.md`: The actual changes made in the files.
-The file are written in Romanian language [ro].
+The file are written in Romanian language.
 
 Your task is to analyze if ALL requirements from the summary are fully and accurately implemented in the diffs, and vice-versa.
 Output a detailed discrepancy markdown report. Do not produce anything outside the markdown format.
@@ -36,7 +36,7 @@ def analyze_changes(summary_path: str, differs_path: str, output_path: str):
     prompt = f"=== SUMMARY (Requirements) ===\n{summary_content}\n\n=== DIFFS (Actual Changes) ===\n{differs_content}\n\n"
     prompt += "Please provide a detailed report identifying if the changes reflect the requirements, highlighting any missing implementations or undocumented modifications."
     
-    report = call_llm(prompt=prompt, system_instruction=SYSTEM_PROMPT, temperature=0.2)
+    report = call_llm(prompt=prompt, system_instruction=SYSTEM_PROMPT, temperature=0.0)
     
     with open(output_path, 'w', encoding='utf-8') as f:
         f.write("# Analysis Report\n\n" + report)

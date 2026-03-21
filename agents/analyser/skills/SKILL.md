@@ -3,7 +3,7 @@
 You will be provided with:
 1. `summary.md`: The requested requirements.
 2. `differs.md`: The actual changes made in the files.
-The file are written in Romanian language [ro].
+The file are written in Romanian language.
 
 You are the Differ Analyzer Agent. Your task is to analyze the differences between two markdown files by reading the provided `differ.md` diff file.
 
