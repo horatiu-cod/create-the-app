@@ -17,7 +17,7 @@ def generate_summary(input_path: str, output_path: str):
             content = f.read()
     except Exception as e:
         logger.error(f"Failed to read {input_path}: {e}")
-        return output_path
+        return output_path #TODO: handle this error, return an empty string or raise an exception
         
     chunks = smart_chunk_text(content)
     

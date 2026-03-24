@@ -44,7 +44,7 @@ def generate_diff(md1_path: str, md2_path: str, output_path: str):
         last_origin_line = ""
 
         labeled_differ = []
-        for line in differ:
+        for line in diff:
             code = line[:2]  # The prefix: '+ ', '- ', '? ', or '  '
             content = line[2:].strip()
             
@@ -64,8 +64,7 @@ def generate_diff(md1_path: str, md2_path: str, output_path: str):
                 labeled_differ.append(f"{prefix}   {content}")
 
         diff_text = '\n'.join(labeled_diff)
-        #diff_text = '\n'.join(diff)
-        
+       
         # Format it nicely as markdown diff
         formatted_diff = f"# Changes \n\n```diff\n{diff_text}\n```"
 
@@ -78,14 +77,14 @@ def generate_diff(md1_path: str, md2_path: str, output_path: str):
         with open(output_path, 'w', encoding='utf-8') as out:
             out.write(f"Agent execution failed due to API error or empty input. Downstream tasks might be impacted.\nError: {e}")
         return output_path
-
+"""
 def main():
 
     #INPUT_DIR = Path(__file__).parent / "data/input"
     OUTPUT_DIR = Path(__file__).parents[3] / "output"
     md1_path = OUTPUT_DIR /"formular_initial.md"
     md2_path = OUTPUT_DIR /"formular_modificat.md"
-    output_path = OUTPUT_DIR /"differs.md"
+    output_path = OUTPUT_DIR /"differs_formular_2.md"
 
     # Print summary
     print("\n" + "=" * 70)
@@ -101,3 +100,5 @@ def main():
 
 if __name__ == "__main__":
      main()
+
+"""

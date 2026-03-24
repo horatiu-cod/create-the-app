@@ -235,7 +235,7 @@ def run_ollama_document_converter_router(input_doc_path: Path, model_name: str =
 
 
 def run_ollama_document_converter(
-    input_doc_path: Path, model_name: str = "deepseek-ocr"
+    input_doc_path: Path, model_name: str = "ibm/granite-docling"
 ) -> tuple[str, bool]:
     # Load environment variables
     # from dotenv import load_dotenv
@@ -253,7 +253,7 @@ def run_ollama_document_converter(
     print("=" * 70)
     print("\nPrerequisites:")
     print("- Install Ollama: https://ollama.ai")
-    print("- Pull model: ollama pull ibm/granite-docling:258m")
+    print(f"- Pull model: ollama pull {model_name}")
     print()
 
     # Check if Ollama is running
@@ -323,11 +323,16 @@ def run_ollama_document_converter(
     doc = doc_converter.convert(input_doc_path).document
 
     doc.save_as_markdown(OUTPUT_DIR)
-    """
-    md = result.document.export_to_markdown()
-    with open(OUTPUT_DIR , 'w', encoding="utf-8") as f:
-            f.write(md)
-    """
+    logger.info(f"Document saved as markdown to {OUTPUT_DIR}")
+    
+    output_path_md = Path(__file__).parent / f"output/{file_name}_exp.md"
+    with open(output_path_md , 'w', encoding="utf-8") as f:
+            f.write(f"Markdown:\n{doc.export_to_markdown()}\n")
+    
+    output_path_html = OUTPUT_DIR.with_suffix('.html')
+    doc.save_as_html(output_path_html)
+    logger.info(f"Document saved as html to {output_path_html}")
+
     return OUTPUT_DIR, True
     
 def main():
@@ -336,8 +341,8 @@ def main():
     #OUTPUT_DIR = Path(__file__).parent / "output"    
     #data_folder = Path(__file__).parent / "../../tests/data"
     #input_doc_path = INPUT_DIR /"formular_initial.pdf"
-    input_doc_path = INPUT_DIR /"memoriu.pdf"
-    #input_doc_path = INPUT_DIR /"formular_modificat.pdf"
+    #input_doc_path = INPUT_DIR /"memoriu.pdf"
+    input_doc_path = INPUT_DIR /"formular_modificat.pdf"
     #input_doc_path = "C:\AntiGravSpace\create-the-app\data\input\memoriu..pdf"
     if not input_doc_path.exists():
         logger.error(f"Input document not found at {input_doc_path}")
@@ -345,7 +350,8 @@ def main():
 
     # Track which examples ran
     #t, s = run_ollama_document_converter_router(input_doc_path)
-    t, s = run_ollama_document_converter_cloud(input_doc_path)
+    #t, s = run_ollama_document_converter_cloud(input_doc_path)
+    t, s = run_ollama_document_converter(input_doc_path)
     
     results = {
         "Ollama": s,

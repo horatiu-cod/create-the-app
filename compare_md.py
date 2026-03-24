@@ -43,7 +43,7 @@ def generate_comparison_report(file1_path, file2_path, output_html="output/compa
 if __name__ == "__main__":
     # --- INSTRUCTIONS ---
     # Put the paths to your two markdown files here:
-    file_old = "output/memoriu.md"
-    file_new = "output/memoriu_3.md"
+    file_old = "output/formular_initial.md"
+    file_new = "output/formular_modificat.md"
     
     generate_comparison_report(file_old, file_new)
